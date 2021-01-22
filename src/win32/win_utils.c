@@ -164,8 +164,7 @@ int local_start()
     wm_children_pool_init();
 
     /* state_main thread */
-    state_init();
-    mdebug1("ASD: Init sem");
+    w_agentd_state_init();
     w_create_thread(NULL,
                      0,
                      (LPTHREAD_START_ROUTINE)state_main,
@@ -306,7 +305,6 @@ int SendMSG(__attribute__((unused)) int queue, const char *message, const char *
 
     /* Send events to the manager across the buffer */
     if (!agt->buffer){
-        mdebug1("ASD: update state");
         w_agentd_state_update(INCREMENT_MSG_COUNT, NULL);
         send_msg(tmpstr, -1);
     }else{
