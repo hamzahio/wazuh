@@ -2,7 +2,7 @@ import glob
 import json
 import re
 import sys
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from copy import copy
 from os import path, chdir, walk
 
@@ -68,7 +68,7 @@ def get_file_and_test_info(test_name, test_mapping, module_name):
         # If no tag is matched, basic tests will be assigned
         related_tests = test_mapping['basic']
 
-    return [test_name, test_tag, related_tests]
+    return [test_name, test_tag, sorted(related_tests)]
 
 
 if __name__ == '__main__':
@@ -80,10 +80,10 @@ if __name__ == '__main__':
         for module in wazuh_modules:
             chdir(module)
             for root, dirs, files in walk('.'):
-                mappings = dict()
+                mappings = OrderedDict()
                 mappings['path'] = path.join(path.relpath(module, base), root.lstrip('./')).strip('/')
                 mappings['files'] = list()
-                for file in files:
+                for file in sorted(files):
                     if file.endswith(allowed_extensions):
                         test_info = get_file_and_test_info(file.lower(), test_tags, module)
                         if test_info and test_info[2]:
