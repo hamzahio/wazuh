@@ -273,6 +273,8 @@ static volatile pid_t wm_children[WM_POOL_SIZE] = { 0 };                // Child
 
 // Execute command with timeout of secs
 
+size_t top_len = 524288;
+
 int wm_exec(char *command, char **output, int *exitcode, int secs, const char * add_path)
 {
     char **argv;
@@ -545,6 +547,12 @@ int wm_exec(char *command, char **output, int *exitcode, int secs, const char * 
 
             if (retval >= 0) {
                 *output = tinfo.output ? tinfo.output : strdup("");
+                size_t output_len = strlen(*output);
+
+                if (output_len > top_len) {
+                    mwarn("Command '%s' produced a %zd-byte output: '%.32s'", command, output_len, *output);
+                    top_len = output_len;
+                }
             } else {
                 free(tinfo.output);
             }
