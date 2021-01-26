@@ -988,3 +988,98 @@ char * w_strndup(const char * str, size_t n) {
 
     return str_cpy;
 }
+
+char* w_strcat(char *a, const char *b, size_t n) {
+    if (a == NULL) {
+        return strndup(b, n);
+    }
+
+    size_t a_len = strlen(a);
+    size_t output_len = a_len + n;
+    char *output = realloc(a, output_len + 1);
+
+    if (output == NULL) {
+        return NULL;
+    }
+
+    memcpy(output + a_len, b, n);
+    output[output_len] = '\0';
+
+    return output;
+}
+
+char** w_strarray_append(char **array, char *string, int n) {
+    char **output = realloc(array, sizeof(char *) * (n + 2));
+
+    if (output == NULL) {
+        return NULL;
+    }
+
+    output[n] = string;
+    output[n + 1] = NULL;
+
+    return output;
+}
+
+// Tokenize string separated by spaces, respecting double-quotes
+
+char** w_strtok(const char *string) {
+    bool quoting = false;
+    int output_n = 0;
+    char *accum = NULL;
+    char **output = calloc(1, sizeof(char*));
+
+    if (output == NULL) {
+        return NULL;
+    }
+
+    const char *i;
+    const char *j;
+
+    for (i = string; (j = strpbrk(i, " \"\\")) != NULL; i = j + 1) {
+        switch (*j) {
+        case ' ':
+            if (quoting) {
+                accum = w_strcat(accum, i, j - i + 1);
+            } else {
+                if (j > i) {
+                    accum = w_strcat(accum, i, j - i);
+                }
+
+                if (accum != NULL) {
+                    output = w_strarray_append(output, accum, output_n++);
+                    accum = NULL;
+                }
+            }
+
+            break;
+
+        case '\"':
+            if (j > i) {
+                accum = w_strcat(accum, i, j - i);
+            }
+
+            quoting = !quoting;
+            break;
+
+        case '\\':
+            if (j > i) {
+                accum = w_strcat(accum, i, j - i);
+            }
+
+            if (j[1] != '\0') {
+                accum = w_strcat(accum, ++j, 1);
+            }
+        }
+    }
+
+    if (*i != '\0') {
+        accum = w_strcat(accum, i, strlen(i));
+    }
+
+    if (accum != NULL) {
+        output = w_strarray_append(output, accum, output_n);
+    }
+
+    return output;
+}
